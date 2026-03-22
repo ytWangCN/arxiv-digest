@@ -1,0 +1,74 @@
+name: Weekly Trend Report
+
+on:
+  schedule:
+    # 08:00 上海时间 = 00:00 UTC，周日
+    - cron: "0 0 * * 0"
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  send-weekly-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 生成 config.yaml
+        env:
+          GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MIMO_API_KEY: ${{ secrets.MIMO_API_KEY }}
+        run: |
+          cat > config.yaml << EOF
+          arxiv:
+            categories:
+              - cs.AI
+              - cs.CV
+              - cs.LG
+              - cs.CL
+            keywords:
+              - robot learning
+              - world model
+            max_results: 300
+            days_back: 7
+          email:
+            smtp_server: smtp.gmail.com
+            smtp_port: 587
+            sender: ${GMAIL_SENDER}
+            app_password: ${GMAIL_APP_PASSWORD}
+            recipients:
+              - ${GMAIL_SENDER}
+          llm:
+            provider: mimo
+            api_key: ${MIMO_API_KEY}
+            base_url: https://api.xiaomimimo.com/v1
+            model: mimo-v2-flash
+            timeout: 60
+          recommender:
+            enabled: true
+            interests: "I'm interested in robot learning, world models, and embodied AI."
+            score_threshold: 6
+            concurrency: 3
+          scheduler:
+            send_time: "08:00"
+            timezone: Asia/Shanghai
+          EOF
+
+      - name: 运行周报
+        run: |
+          python - << 'EOF'
+          from main import load_config
+          from trend_analyzer import analyze_weekly_trend
+          from mailer import send_trend_email
+          config = load_config()
+          trend = analyze_weekly_trend(config)
+          send_trend_email(trend, config)
+          EOF
