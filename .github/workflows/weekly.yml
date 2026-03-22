@@ -2,8 +2,8 @@ name: Weekly Trend Report
 
 on:
   schedule:
-    # 08:00 上海时间 = 00:00 UTC，周日
-    - cron: "0 0 * * 0"
+    # 20:00 上海时间 = 12:00 UTC，周日
+    - cron: "0 12 * * 0"
   workflow_dispatch:
 
 jobs:

@@ -2,8 +2,8 @@ name: Daily Digest
 
 on:
   schedule:
-    # 08:00 上海时间 = 00:00 UTC，周一至周五
-    - cron: "0 0 * * 1-5"
+    # 20:00 上海时间 = 12:00 UTC，周一至周五
+    - cron: "0 12 * * 1-5"
   workflow_dispatch:
 
 jobs:
