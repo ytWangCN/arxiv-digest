@@ -1,0 +1,52 @@
+arxiv:
+  # arxiv 分类代码，参考 https://arxiv.org/category_taxonomy
+  categories:
+    - cs.AI
+    - cs.CV
+    - cs.LG
+    - cs.CL
+  # 关键词（OR 逻辑，命中标题或摘要任意一个即保留）
+  keywords:
+    - robot learning
+    - world model
+  # 每次最多抓取的论文数量
+  max_results: 200
+  # 抓取最近几天的论文（日常保持 1）
+  days_back: 1
+
+email:
+  smtp_server: smtp.gmail.com
+  smtp_port: 587
+  sender: your_email@gmail.com
+  # Gmail 应用专用密码（非账户密码）
+  # 获取方式：Google 账号 → 安全性 → 两步验证 → 应用专用密码
+  app_password: your_app_password
+  recipients:
+    - your_email@gmail.com
+
+llm:
+  # 支持任意 OpenAI 兼容接口（DeepSeek / Xiaomi Mimo 等）
+  provider: mimo
+  api_key: your_api_key
+  # Xiaomi Mimo
+  base_url: https://api.xiaomimimo.com/v1
+  model: mimo-v2-flash
+  # DeepSeek:
+  # base_url: https://api.deepseek.com/v1
+  # model: deepseek-chat
+  timeout: 30
+
+recommender:
+  # 是否启用大模型推荐（评分 + 中文摘要）
+  enabled: true
+  # 描述你的研究兴趣，大模型据此打分
+  interests: "I'm interested in robot learning, world models, and embodied AI."
+  # 只推送评分 >= 该值的论文（1-10）
+  score_threshold: 6
+  # 并发请求数（避免 API 限速）
+  concurrency: 3
+
+scheduler:
+  # 每日发送时间（24小时制，本地时区）
+  send_time: "08:00"
+  timezone: Asia/Shanghai
