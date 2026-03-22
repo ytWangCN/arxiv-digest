@@ -4,7 +4,7 @@ on:
   schedule:
     # 08:00 上海时间 = 00:00 UTC，周日
     - cron: "0 0 * * 0"
-  workflow_dispatch:  # 支持手动触发
+  workflow_dispatch:
 
 jobs:
   send-weekly-report:
@@ -27,48 +27,49 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           MIMO_API_KEY: ${{ secrets.MIMO_API_KEY }}
         run: |
-          cat > config.yaml << EOF
-          arxiv:
-            categories:
-              - cs.AI
-              - cs.CV
-              - cs.LG
-              - cs.CL
-            keywords:
-              - robot learning
-              - world model
-            max_results: 300
-            days_back: 7
-          email:
-            smtp_server: smtp.gmail.com
-            smtp_port: 587
-            sender: ${GMAIL_SENDER}
-            app_password: ${GMAIL_APP_PASSWORD}
-            recipients:
-              - ${GMAIL_SENDER}
-          llm:
-            provider: mimo
-            api_key: ${MIMO_API_KEY}
-            base_url: https://api.xiaomimimo.com/v1
-            model: mimo-v2-flash
-            timeout: 60
-          recommender:
-            enabled: true
-            interests: "I'm interested in robot learning, world models, and embodied AI."
-            score_threshold: 6
-            concurrency: 3
-          scheduler:
-            send_time: "08:00"
-            timezone: Asia/Shanghai
-          EOF
+          python - <<'PYEOF'
+          import os, yaml
+          config = {
+            "arxiv": {
+              "categories": ["cs.AI", "cs.CV", "cs.LG", "cs.CL"],
+              "keywords": ["robot learning", "world model"],
+              "max_results": 300,
+              "days_back": 7,
+            },
+            "email": {
+              "smtp_server": "smtp.gmail.com",
+              "smtp_port": 587,
+              "sender": os.environ["GMAIL_SENDER"],
+              "app_password": os.environ["GMAIL_APP_PASSWORD"],
+              "recipients": [os.environ["GMAIL_SENDER"]],
+            },
+            "llm": {
+              "provider": "mimo",
+              "api_key": os.environ["MIMO_API_KEY"],
+              "base_url": "https://api.xiaomimimo.com/v1",
+              "model": "mimo-v2-flash",
+              "timeout": 60,
+            },
+            "recommender": {
+              "enabled": True,
+              "interests": "I'm interested in robot learning, world models, and embodied AI.",
+              "score_threshold": 6,
+              "concurrency": 3,
+            },
+            "scheduler": {"send_time": "08:00", "timezone": "Asia/Shanghai"},
+          }
+          with open("config.yaml", "w") as f:
+            yaml.dump(config, f, allow_unicode=True)
+          print("config.yaml 生成成功")
+          PYEOF
 
       - name: 运行周报
         run: |
-          python - << 'EOF'
+          python - <<'PYEOF'
           from main import load_config
           from trend_analyzer import analyze_weekly_trend
           from mailer import send_trend_email
           config = load_config()
           trend = analyze_weekly_trend(config)
           send_trend_email(trend, config)
-          EOF
+          PYEOF
